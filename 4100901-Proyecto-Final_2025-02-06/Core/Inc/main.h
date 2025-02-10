@@ -86,10 +86,10 @@ void Error_Handler(void);
 #define TCK_GPIO_Port GPIOA
 #define ROW_2_Pin GPIO_PIN_3
 #define ROW_2_GPIO_Port GPIOB
-#define ROW_3_Pin GPIO_PIN_4
-#define ROW_3_GPIO_Port GPIOB
-#define ROW_4_Pin GPIO_PIN_5
+#define ROW_4_Pin GPIO_PIN_4
 #define ROW_4_GPIO_Port GPIOB
+#define ROW_3_Pin GPIO_PIN_5
+#define ROW_3_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
