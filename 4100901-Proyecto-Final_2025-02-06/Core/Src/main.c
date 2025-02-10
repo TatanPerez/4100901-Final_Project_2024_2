@@ -56,7 +56,146 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  static uint32_t last_interrupt_time = 0;
+  if (HAL_GetTick() - last_interrupt_time < 100) {
+    return;
+  }
+  last_interrupt_time = HAL_GetTick();
+  switch (GPIO_Pin)
+  {
+    case COLUMN_1_Pin:
+      if (HAL_GPIO_ReadPin(COLUMN_1_GPIO_Port, COLUMN_1_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"E", 1, 10);
+        return; // Error si el boton no esta presionado, no procesar
+      }
+      HAL_GPIO_WritePin(ROW_1_GPIO_Port, ROW_1_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_1_GPIO_Port, COLUMN_1_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"1", 1, 10); // Columna 1, Fila 1
+        break; 
+      }
+      HAL_GPIO_WritePin(ROW_2_GPIO_Port, ROW_2_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_1_GPIO_Port, COLUMN_1_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"4", 1, 10); // Columna 1, Fila 2
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_3_GPIO_Port, ROW_3_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_1_GPIO_Port, COLUMN_1_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"7", 1, 10); // Columna 1, Fila 3
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_4_GPIO_Port, ROW_4_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_1_GPIO_Port, COLUMN_1_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"*", 1, 10); // Columna 1, Fila 4
+        break;
+      }
+      break;
+    
+    case COLUMN_2_Pin:
+      if (HAL_GPIO_ReadPin(COLUMN_2_GPIO_Port, COLUMN_2_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"E", 1, 10);
+        return; // Error
+      }
+      HAL_GPIO_WritePin(ROW_1_GPIO_Port, ROW_1_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_2_GPIO_Port, COLUMN_2_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"2", 1, 10); // Columna 2, Fila 1
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_2_GPIO_Port, ROW_2_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_2_GPIO_Port, COLUMN_2_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"5", 1, 10); // Columna 2, Fila 2
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_3_GPIO_Port, ROW_3_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_2_GPIO_Port, COLUMN_2_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"8", 1, 10); // Columna 2, Fila 3
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_4_GPIO_Port, ROW_4_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_2_GPIO_Port, COLUMN_2_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"0", 1, 10); // Columna 2, Fila 4
+        break;
+      }
+      break;
+      
+    case COLUMN_3_Pin:
+      if (HAL_GPIO_ReadPin(COLUMN_3_GPIO_Port, COLUMN_3_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"E", 1, 10); // 
+        return; //Error
+      }
+      HAL_GPIO_WritePin(ROW_1_GPIO_Port, ROW_1_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_3_GPIO_Port, COLUMN_3_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"3", 1, 10); // Columna 3, Fila 1
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_2_GPIO_Port, ROW_2_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_3_GPIO_Port, COLUMN_3_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"6", 1, 10); // Columna 3, Fila 2
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_3_GPIO_Port, ROW_3_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_3_GPIO_Port, COLUMN_3_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"9", 1, 10); // Columna 3, Fila 3
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_4_GPIO_Port, ROW_4_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_3_GPIO_Port, COLUMN_3_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"#", 1, 10); // Columna 3, Fila 4
+        break;
+      }
+      break;
 
+    case COLUMN_4_Pin:
+      if (HAL_GPIO_ReadPin(COLUMN_4_GPIO_Port, COLUMN_4_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"E", 1, 10);
+        return; // Error
+      }
+      HAL_GPIO_WritePin(ROW_1_GPIO_Port, ROW_1_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_4_GPIO_Port, COLUMN_4_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"A", 1, 10); // Columna 4, Fila 1
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_2_GPIO_Port, ROW_2_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_4_GPIO_Port, COLUMN_4_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"B", 1, 10); // Columna 4, Fila 2
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_3_GPIO_Port, ROW_3_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_4_GPIO_Port, COLUMN_4_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"C", 1, 10); // Columna 4, Fila 3
+        break;
+      }
+      HAL_GPIO_WritePin(ROW_4_GPIO_Port, ROW_4_Pin, GPIO_PIN_SET);
+      HAL_Delay(2);
+      if (HAL_GPIO_ReadPin(COLUMN_4_GPIO_Port, COLUMN_4_Pin) == GPIO_PIN_SET) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"D", 1, 10); // Columna 4, Fila 4
+        break;
+      }
+      break;
+    default:
+      break;
+  }
+  HAL_GPIO_WritePin(ROW_1_GPIO_Port, ROW_1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(ROW_2_GPIO_Port, ROW_2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(ROW_3_GPIO_Port, ROW_3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(ROW_4_GPIO_Port, ROW_4_Pin, GPIO_PIN_RESET);
+}
 /* USER CODE END 0 */
 
 /**
