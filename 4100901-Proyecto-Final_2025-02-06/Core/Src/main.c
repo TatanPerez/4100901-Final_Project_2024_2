@@ -22,6 +22,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "keypad.h"
+#include "ring_buffer.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,6 +34,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+#define COMMAND_LENGTH 5  // Command definitions (fixed length of 5 characters)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,7 +46,7 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+uint8_t rx_byte; 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -56,18 +59,70 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint32_t key_pressed_tick = 0;
-uint16_t column_pressed = 0;
+uint32_t key_pressed_tick = 0;  // Stores the timestamp when a key is pressed
+uint16_t column_pressed = 0;    // Stores the column of the keypad that was pressed
 
-uint32_t debounce_tick = 0;
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
+uint32_t debounce_tick = 0;  // Stores the timestamp to prevent debounce
+
+// Callback to handle GPIO interrupts (matrix keypad)
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+  // Checks if enough time has passed since the last interrupt (debounce)
   if ((debounce_tick + 200) > HAL_GetTick()) {
-    return;
+    return;  // If not enough time has passed, ignore the interrupt
   }
-  debounce_tick = HAL_GetTick();
-  key_pressed_tick = HAL_GetTick();
-  column_pressed = GPIO_Pin;
+  debounce_tick = HAL_GetTick();  // Update the last interrupt timestamp
+  key_pressed_tick = HAL_GetTick();  // Store the timestamp when the key was pressed
+  column_pressed = GPIO_Pin;  // Store the column of the keypad that was pressed
+}
+
+// Circular buffer to store data received via UART
+ring_buffer_t rx_buffer;
+uint8_t rx_buffer_mem[64];  // Memory for the circular buffer (size 64 bytes)
+char current_cmd[COMMAND_LENGTH];  // Stores the current command being received
+uint8_t cmd_index = 0;  // Index to track the position in the current command
+
+// Callback to handle UART data reception
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+  if (huart == &huart2) {  // Check if the interrupt is from UART2
+    ring_buffer_write(&rx_buffer, rx_byte);  // Write the received byte to the circular buffer
+    HAL_UART_Transmit(&huart2, &rx_byte, 1, 100);  // Echo the byte back
+    HAL_UART_Receive_IT(&huart2, &rx_byte, 1);  // Enable reception of a new byte
+  }
+}
+
+// Helper function to send a string via UART
+void uart_send_string(const char *str) {
+  HAL_UART_Transmit(&huart2, (uint8_t *)str, strlen(str), 100);
+}
+
+// Function to process commands received via UART
+void process_commands(void) {
+  uint8_t byte;
+  while (ring_buffer_read(&rx_buffer, &byte)) {  // Read a byte from the circular buffer
+    // Shift the command buffer left and add the new byte
+    memmove(current_cmd, current_cmd + 1, COMMAND_LENGTH - 1);
+    current_cmd[COMMAND_LENGTH - 1] = (char)byte;
+
+    // Compare the current command with defined commands
+    if (memcmp(current_cmd, "#*A*#", COMMAND_LENGTH) == 0) {
+      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);  // Turn on LED
+      uart_send_string("\r\n#*A*#\r\nDoor open (turn ON LD2)\r\n");  // Send message
+      memset(current_cmd, 0, COMMAND_LENGTH);  // Clear the command buffer
+    } else if (memcmp(current_cmd, "#*C*#", COMMAND_LENGTH) == 0) {
+      HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);  // Turn off LED
+      uart_send_string("\r\n#*C*#\r\nDoor closed (turn OFF LD2)\r\n");  // Send message
+      memset(current_cmd, 0, COMMAND_LENGTH);  // Clear the command buffer
+    } else if (memcmp(current_cmd, "#*1*#", COMMAND_LENGTH) == 0) {
+      uint8_t state = HAL_GPIO_ReadPin(LD2_GPIO_Port, LD2_Pin);  // Read LED state
+      uart_send_string(state ? "\r\n#*1*#\r\nDoor status: open (LD2 ON)\r\n" : 
+                               "#*1*#\r\nDoor status: closed (LD2 OFF)\r\n");  // Send message
+      memset(current_cmd, 0, COMMAND_LENGTH);  // Clear the command buffer
+    } else if (memcmp(current_cmd, "#*0*#", COMMAND_LENGTH) == 0) {
+      ring_buffer_reset(&rx_buffer);  // Clear the circular buffer
+      uart_send_string("\r\n#*0*#\r\nRing buffer clear command: The buffer is empty\r\n");  // Send message
+      memset(current_cmd, 0, COMMAND_LENGTH);  // Clear the command buffer
+    }
+  }
 }
 /* USER CODE END 0 */
 
@@ -102,19 +157,23 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  // ring_buffer_init(&ring_buffer, ring_buffer_memory, BUFFER_SIZE);
   keypad_init();
+  ring_buffer_init(&rx_buffer, rx_buffer_mem, sizeof(rx_buffer_mem));
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_UART_Transmit(&huart2, (uint8_t *)"Hello, World!\r\n", 15, 1000);
+  HAL_UART_Transmit(&huart2, (uint8_t *)"Sistema Iniciado\r\n", 18, 1000);
+  memset(current_cmd, 0, COMMAND_LENGTH);
+  HAL_UART_Receive_IT(&huart2, &rx_byte, 1); // Start UART interrupt
   while (1) {
     if (column_pressed != 0 && (key_pressed_tick + 5) < HAL_GetTick() ) {
       uint8_t key = keypad_scan(column_pressed);
+      ring_buffer_write(&rx_buffer, key);
       HAL_UART_Transmit(&huart2, &key, 1, 100);
       column_pressed = 0;
     }
+    process_commands();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
