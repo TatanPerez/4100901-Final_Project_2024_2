@@ -467,3 +467,4 @@ Nuevo documento de texto.txt
 4100901-Proyecto-Final_2025-02-06/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_ll_tim.c
 4100901-Proyecto-Final_2025-02-06/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_ll_usart.c
 4100901-Proyecto-Final_2025-02-06/build/Debug/CMakeFiles/4100901-Proyecto-Final_2025-02-06.dir/Drivers/Keypad/keypad.c.obj
+4100901-Proyecto-Final_2025-02-06/build/Debug/CMakeFiles/4100901-Proyecto-Final_2025-02-06.dir/Core/Src/ring_buffer.c.obj

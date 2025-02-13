@@ -102,13 +102,13 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  // ring_buffer_init(&ring_buffer, ring_buffer_memory, BUFFER_SIZE);
+  keypad_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  keypad_init();
-  HAL_UART_Transmit(&huart2, (uint8_t *)"Hello World\n", 12, 100);
+  HAL_UART_Transmit(&huart2, (uint8_t *)"Hello, World!\r\n", 15, 1000);
   while (1) {
     if (column_pressed != 0 && (key_pressed_tick + 5) < HAL_GetTick() ) {
       uint8_t key = keypad_scan(column_pressed);
