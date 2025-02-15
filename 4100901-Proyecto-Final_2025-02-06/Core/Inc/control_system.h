@@ -5,12 +5,14 @@
 #include "main.h"
 
 // Define el tamaño del comando
-#define COMMAND_LENGTH 5
+#define LENGTH 5    // Longitud de los comandos
 
 // Buffer circular para almacenar los datos recibidos
-extern ring_buffer_t rx_buffer;
-extern uint8_t rx_buffer_mem[64];  // Memoria para el buffer circular
-extern char current_cmd[COMMAND_LENGTH];  // Almacena el comando actual
+extern ring_buffer_t keypad;
+extern uint8_t keypad_mem[64];  // Memoria para el buffer circular
+extern ring_buffer_t terminal;
+extern uint8_t terminal_mem[64];  // Memoria para el buffer circular
+extern char current_cmd[LENGTH];  // Almacena el comando actual
 extern uint8_t cmd_index;  // Índice para realizar el seguimiento del comando actual
 extern UART_HandleTypeDef huart2;  // Declaración de huart2
 extern uint8_t rx_byte;
@@ -25,5 +27,6 @@ void process_commands(void);
 
 // Función auxiliar para enviar una cadena por UART
 void uart_send_string(const char *str);
+void process_buffer_commands(ring_buffer_t *rb);
 
 #endif /* CONTROL_SYSTEM_H */

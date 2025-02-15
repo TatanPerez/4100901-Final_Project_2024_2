@@ -113,15 +113,18 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_UART_Transmit(&huart2, (uint8_t *)"Sistema Iniciado\r\n", 18, 1000);
-  memset(current_cmd, 0, COMMAND_LENGTH);
+  HAL_UART_Transmit(&huart2, (uint8_t *)"Sistema Iniciado de Control\r\n", 29, 1000);
+  memset(current_cmd, 0, LENGTH);
   HAL_UART_Receive_IT(&huart2, &rx_byte, 1); // Start UART interrupt
   while (1) {
-    if (column_pressed != 0 && (key_pressed_tick + 5) < HAL_GetTick() ) {
-      uint8_t key = keypad_scan(column_pressed);
-      ring_buffer_write(&rx_buffer, key);
-      HAL_UART_Transmit(&huart2, &key, 1, 100);
-      column_pressed = 0;
+    if (column_pressed != 0 && ((key_pressed_tick + 5) < HAL_GetTick()))
+    {
+        uint8_t key = keypad_scan(column_pressed);
+        if (key != 0) {
+            ring_buffer_write(&keypad, key);
+            HAL_UART_Transmit(&huart2, &key, 1, 100);
+        }
+        column_pressed = 0;
     }
     process_commands();
     /* USER CODE END WHILE */
