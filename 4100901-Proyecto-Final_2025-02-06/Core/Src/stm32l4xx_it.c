@@ -22,6 +22,7 @@
 #include "stm32l4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "control_system.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -250,9 +251,22 @@ void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
 
+  // Verifica si la interrupción es para B1_Pin
+  if (__HAL_GPIO_EXTI_GET_IT(B1_Pin) != RESET)
+  {
+      __HAL_GPIO_EXTI_CLEAR_IT(B1_Pin);  // Limpia la bandera de interrupción
+      HAL_GPIO_EXTI_IRQHandler(B1_Pin);
+      uint32_t current_time = HAL_GetTick();
+      // Solo se considera la presión si ha pasado el tiempo de debouncing
+      if ((current_time - last_button_press_time) > BUTTON_DEBOUNCE_DELAY)
+      {
+          button_press_count++;         // Incrementa el contador
+          last_button_press_time = current_time; // Actualiza el tiempo del último presionado
+      }
+  }
   /* USER CODE END EXTI15_10_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(COLUMN_1_Pin);
-  HAL_GPIO_EXTI_IRQHandler(B1_Pin);
+  
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
 
   /* USER CODE END EXTI15_10_IRQn 1 */

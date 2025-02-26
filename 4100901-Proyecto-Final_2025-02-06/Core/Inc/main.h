@@ -80,6 +80,8 @@ void Error_Handler(void);
 #define COLUMN_3_EXTI_IRQn EXTI9_5_IRQn
 #define ROW_1_Pin GPIO_PIN_10
 #define ROW_1_GPIO_Port GPIOA
+#define Puerta_Pin GPIO_PIN_11
+#define Puerta_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14

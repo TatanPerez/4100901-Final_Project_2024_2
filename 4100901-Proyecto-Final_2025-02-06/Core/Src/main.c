@@ -25,6 +25,8 @@
 #include "ring_buffer.h"
 #include <string.h>
 #include "control_system.h"
+#include "ssd1306_fonts.h"
+#include "ssd1306.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,7 +36,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define FW_VERSION "0.1.0\r\n"
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -115,14 +117,25 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   keypad_init();
+  ssd1306_Init();
   control_system_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_UART_Transmit(&huart2, (uint8_t *)"Sistema Iniciado de Control\r\n", 29, 1000);
-  memset(current_cmd, 0, LENGTH);
+  HAL_UART_Transmit(&huart2, (uint8_t *)FW_VERSION, sizeof(FW_VERSION)-1, 10);
+  HAL_UART_Transmit(&huart2, (uint8_t *)"Access Control System\r\n", 23, 1000);
+  memset(current_cmd, 0, LENGTH); // Limpiar el buffer de comandos
   HAL_UART_Receive_IT(&huart2, &rx_byte, 1); // Start UART interrupt
+  HAL_UART_Receive_IT(&huart3, &esp01_rx_byte,1);
+  ssd1306_SetCursor(20,10);
+  ssd1306_Fill(Black);
+  ssd1306_WriteString((char *)FW_VERSION, Font_7x10, White);
+  ssd1306_SetCursor(10, 30);          // Establecer la posición del cursor para el segundo mensaje
+  ssd1306_WriteString("Access Control", Font_7x10, White); // Mostrar el mensaje
+  ssd1306_SetCursor(10, 40); 
+  ssd1306_WriteString("System", Font_7x10, White); // Mostrar
+  ssd1306_UpdateScreen();
   while (1) {
     if (column_pressed != 0 && ((key_pressed_tick + 5) < HAL_GetTick()))
     {
@@ -134,6 +147,7 @@ int main(void)
         column_pressed = 0;
     }
     process_commands();
+    process_button();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -326,23 +340,23 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|ROW_1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|ROW_1_Pin|Puerta_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, ROW_2_Pin|ROW_4_Pin|ROW_3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
+  /*Configure GPIO pins : LD2_Pin Puerta_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|Puerta_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : COLUMN_1_Pin */
   GPIO_InitStruct.Pin = COLUMN_1_Pin;
