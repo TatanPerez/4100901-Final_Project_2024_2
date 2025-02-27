@@ -81,6 +81,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
   key_pressed_tick = HAL_GetTick();  // Store the timestamp when the key was pressed
   column_pressed = GPIO_Pin;  // Store the column of the keypad that was pressed
 }
+
+// Callback to handle USART interrupts (console)
+void hearbeat(void)
+{
+	static uint32_t tick = 0;
+	if (tick < HAL_GetTick()) {
+		tick = HAL_GetTick() + 500;
+		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -137,6 +147,8 @@ int main(void)
   ssd1306_WriteString("System", Font_7x10, White); // Mostrar
   ssd1306_UpdateScreen();
   while (1) {
+    hearbeat();
+
     if (column_pressed != 0 && ((key_pressed_tick + 5) < HAL_GetTick()))
     {
         uint8_t key = keypad_scan(column_pressed);
@@ -340,19 +352,19 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|ROW_1_Pin|Puerta_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LED1_Pin|LED4_Pin|LD2_Pin|ROW_1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, ROW_2_Pin|ROW_4_Pin|ROW_3_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
+  /*Configure GPIO pins : B1_Pin Timbre_Pin */
+  GPIO_InitStruct.Pin = B1_Pin|Timbre_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin Puerta_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|Puerta_Pin;
+  /*Configure GPIO pins : LED1_Pin LED4_Pin LD2_Pin */
+  GPIO_InitStruct.Pin = LED1_Pin|LED4_Pin|LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

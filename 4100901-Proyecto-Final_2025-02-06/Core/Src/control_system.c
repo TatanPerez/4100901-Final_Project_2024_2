@@ -68,6 +68,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 void uart_send_string(const char *str) {
     // Transmite la cadena a través de UART2
     HAL_UART_Transmit(&huart2, (uint8_t *)str, strlen(str), 100);
+    HAL_UART_Transmit(&huart3, (uint8_t *)str, strlen(str), 100);
 }
 
 // Función principal para procesar comandos
@@ -111,9 +112,10 @@ void process_buffer_commands(ring_buffer_t *rb) {
         // Compara el comando leído con el comando OPEN
         if (memcmp(temp, OPEN, LENGTH) == 0) {
             // Enciende el LED (simula abrir la puerta)
-            HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET);
             // Envía un mensaje indicando que la puerta está abierta
             uart_send_string("\r\nDoor OPEN (LD2 ON)\r\n");
+            HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
             ssd1306_On_Led();
             // Elimina el comando del buffer circular
             for (int i = 0; i < LENGTH; i++) {
@@ -124,9 +126,11 @@ void process_buffer_commands(ring_buffer_t *rb) {
         // Compara el comando leído con el comando CLOSE
         else if (memcmp(temp, CLOSE, LENGTH) == 0) {
             // Apaga el LED (simula cerrar la puerta)
-            HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
             // Envía un mensaje indicando que la puerta está cerrada
-            uart_send_string("\r\nDoor CLOSED (LD2 OFF)\r\n");          
+            uart_send_string("\r\nDoor CLOSED (LD2 OFF)\r\n");
+            HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET); 
+            ssd1306_Off_Led();         
             // Elimina el comando del buffer circular
             for (int i = 0; i < LENGTH; i++) {
                 uint8_t dummy;
@@ -136,17 +140,41 @@ void process_buffer_commands(ring_buffer_t *rb) {
         // Compara el comando leído con el comando STATUS
         else if (memcmp(temp, STATUS, LENGTH) == 0) {
             // Lee el estado actual del LED (simula el estado de la puerta)
-            uint8_t state = HAL_GPIO_ReadPin(LD2_GPIO_Port, LD2_Pin);
-            // Envía un mensaje con el estado actual
-            uart_send_string(state ? "\r\nStatus: OPEN (LD2 ON)\r\n" : "\r\nStatus: CLOSED (LD2 OFF)\r\n");
-            // Envía un mensaje con el estado actual
-            if (state) {
-                // Si la puerta está abierta, muestra el icono y texto de "abierto"
+            GPIO_PinState estado_LED1 = HAL_GPIO_ReadPin(LED1_GPIO_Port, LED1_Pin);
+            GPIO_PinState estado_LED4 = HAL_GPIO_ReadPin(LED4_GPIO_Port, LED4_Pin);
+
+            if (estado_LED1 == GPIO_PIN_SET){
+                HAL_UART_Transmit(&huart2,(uint8_t*)"Estado: Abierta\r\n",17,100);
+                HAL_UART_Transmit(&huart2,(uint8_t*)"Estado: Abierta\r\n",17,100);
                 ssd1306_On_Led();
-            } else {
-                // Si la puerta está cerrada, muestra el icono y texto de "cerrado"
+            }
+            else if (estado_LED4 == GPIO_PIN_SET){
+                HAL_UART_Transmit(&huart2,(uint8_t*)"Estado: Abierta\r\n",17,100);
+                HAL_UART_Transmit(&huart2,(uint8_t*)"Estado: Abierta\r\n",17,100);
                 ssd1306_Off_Led();
             }
+            else{
+                HAL_UART_Transmit(&huart2,(uint8_t*)"Estado: Reiniciando\r\n",21,100);
+                HAL_UART_Transmit(&huart3,(uint8_t*)"Estado: Reiniciando\r\n",21,100);
+                ssd1306_Fill(Black); // Limpiar pantalla
+                ssd1306_SetCursor(20,20);
+                ssd1306_WriteString("Buffer Cleared", Font_7x10, White); // Muestra "Buffer Cleared"
+                ssd1306_UpdateScreen();
+                HAL_Delay(1000); // Muestra el mensaje por 1 segundo
+
+            }
+            // uint8_t state = HAL_GPIO_ReadPin(LED1_GPIO_Port, LED1_Pin);
+            // uint8_t state2 = HAL_GPIO_ReadPin(LED4_GPIO_Port, LED4_Pin);
+            // // Envía un mensaje con el estado actual
+            // uart_send_string(state ? "\r\nStatus: OPEN (LD2 ON)\r\n" : "\r\nStatus: CLOSED (LD2 OFF)\r\n");
+            // // Envía un mensaje con el estado actual
+            // if (state) {
+            //     // Si la puerta está abierta, muestra el icono y texto de "abierto"
+            //     ssd1306_On_Led();
+            // } else {
+            //     // Si la puerta está cerrada, muestra el icono y texto de "cerrado"
+            //     ssd1306_Off_Led();
+            // }
             // Elimina el comando del buffer circular
             for (int i = 0; i < LENGTH; i++) {
                 uint8_t dummy;
@@ -159,6 +187,9 @@ void process_buffer_commands(ring_buffer_t *rb) {
             ring_buffer_reset(rb);
             // Envía un mensaje indicando que el buffer fue limpiado
             uart_send_string("\r\nBuffer cleared\r\n");
+            // Reinicia el sistema
+            HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin,GPIO_PIN_RESET);
             // Muestra un mensaje en la pantalla SSD1306 indicando que el buffer ha sido limpiado
             ssd1306_Fill(Black); // Limpiar pantalla
             ssd1306_SetCursor(20,20);
