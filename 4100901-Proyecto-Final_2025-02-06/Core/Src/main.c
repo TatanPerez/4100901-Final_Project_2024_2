@@ -162,24 +162,26 @@ int main(void)
   HAL_UART_Receive_IT(&huart3, &esp01_rx_byte,1);
   ssd1306_Welcome();
   while (1) {
-    hearbeat();
 
-    if (column_pressed != 0 && ((key_pressed_tick + 5) < HAL_GetTick()))
-    {
-        uint8_t key = keypad_scan(column_pressed);
-        if (key != 0) {
-            ring_buffer_write(&keypad, key);
-            HAL_UART_Transmit(&huart2, &key, 1, 100);
+    heartbeat();  // Llama a la función heartbeat() para realizar tareas periódicas, como monitorear o mantener el sistema activo
+    // Verifica si una tecla ha sido presionada y si ha pasado el tiempo suficiente desde la última vez que se presionó una tecla
+    if (column_pressed != 0 && ((key_pressed_tick + 5) < HAL_GetTick())) {
+        uint8_t key = keypad_scan(column_pressed);  // Escanea el teclado en la columna presionada para obtener el valor de la tecla
+
+        if (key != 0) {  // Si se ha detectado una tecla válida
+            ring_buffer_write(&keypad, key);  // Escribe el valor de la tecla en el buffer circular del teclado
+            HAL_UART_Transmit(&huart2, &key, 1, 100);  // Transmite el valor de la tecla a través de UART (por ejemplo, para depuración)
         }
-        column_pressed = 0;
+
+        column_pressed = 0;  // Resetea la columna presionada para esperar la próxima tecla
     }
-    if (doorbell_pressed == 1){
-      process_timbre();
+    if (doorbell_pressed == 1) {  // Verifica si el timbre ha sido presionado
+        process_timbre();  // Llama a la función que procesa el evento del timbre (por ejemplo, mostrar mensaje, etc.)
     }
-    // process_timbre();
-    process_sensor();
-    process_commands();
-    process_button();
+    process_sensor();  // Llama a la función que procesa el estado del sensor (detecta si hay alguien cerca)
+    process_commands();  // Llama a la función que procesa los comandos (procesa los comandos recibidos por UART, teclado, etc.)
+    process_button();  // Llama a la función que procesa el estado del botón físico (si el usuario presiona el botón)
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

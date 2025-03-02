@@ -123,6 +123,7 @@ El siguiente diagrama ilustra las conexiones físicas entre la placa, los perif�
 
 El sistema gestiona el estado de la cerradura mediante comandos y pulsaciones del botón. Además, el sensor infrarrojo de proximidad notifica la presencia de una persona frente a la puerta sin alterar el estado de la cerradura. El diagrama a continuación resume las transiciones principales:
 
+```
  +--------------+
  |              |
  |   CERRADO    |<--------------------------+
@@ -147,6 +148,7 @@ El sistema gestiona el estado de la cerradura mediante comandos y pulsaciones de
  |              |
  +--------------+
 
+```
 
 **Notas adicionales:**
 
@@ -228,6 +230,7 @@ El firmware se organiza en módulos que incluyen:
   - Documentación de la biblioteca HAL de STM32 y drivers de los periféricos.
 
 ---
+
 
 Este documento resume la arquitectura, componentes de hardware, módulos implementados, funcionalidades y la lógica de control del sistema de acceso, facilitando su comprensión, mantenimiento y futura ampliación.
 
