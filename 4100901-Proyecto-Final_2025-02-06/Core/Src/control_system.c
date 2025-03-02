@@ -17,7 +17,8 @@ const char CLEAR[] = "#*0*#";  // Comando para limpiar el buffer
 // Variables globales
 volatile uint8_t button_press_count = 0;
 volatile uint32_t last_button_press_time = 0;
-
+extern uint32_t sensor_detected_flag;
+extern uint8_t doorbell_pressed;
 // Definición de buffers circulares y variables
 ring_buffer_t keypad;         // Buffer circular para el teclado
 uint8_t keypad_mem[64];       // Memoria reservada para el buffer del teclado
@@ -95,7 +96,38 @@ void ssd1306_Off_Led(void){
     ssd1306_Fill(Black); // Limpiar pantalla
     ssd1306_DrawBitmap(0, 0, closed_text, 128, 64, White);
     ssd1306_UpdateScreen();
-    HAL_Delay(500);
+    HAL_Delay(3000);
+    ssd1306_Password();
+}
+// Funcion para indicar que el buffer circular esta limpio
+void ssd1306_Clean_Led(void){
+    ssd1306_Fill(Black); // Limpiar pantalla
+    ssd1306_SetCursor(20,20);
+    ssd1306_WriteString("Buffer Cleared", Font_7x10, White); // Muestra "Buffer Cleared"
+    ssd1306_UpdateScreen();
+    HAL_Delay(3000); // Muestra el mensaje por 3 segundo
+    ssd1306_Password();
+}
+void ssd1306_Password(void){
+    ssd1306_Fill(Black); // Limpiar pantalla
+    ssd1306_SetCursor(10,20);
+    ssd1306_WriteString("Welcome Enter", Font_7x10, White);
+    ssd1306_SetCursor(10,30);
+    ssd1306_WriteString("Password ...", Font_7x10, White);
+    ssd1306_UpdateScreen();
+    HAL_Delay(6000); 
+    ssd1306_Fill(Black);
+    ssd1306_UpdateScreen();
+}
+void ssd1306_Welcome(void){
+    ssd1306_Fill(Black);
+    ssd1306_SetCursor(20,10);
+    ssd1306_WriteString("0.1.0\r\n", Font_7x10, White);
+    ssd1306_SetCursor(10, 30);          // Establecer la posición del cursor para el segundo mensaje
+    ssd1306_WriteString("Access Control", Font_7x10, White); // Mostrar el mensaje
+    ssd1306_SetCursor(10, 40); 
+    ssd1306_WriteString("System", Font_7x10, White); // Mostrar
+    ssd1306_UpdateScreen();
 }
 // Función para procesar comandos en un buffer circular específico
 void process_buffer_commands(ring_buffer_t *rb) {
@@ -114,7 +146,7 @@ void process_buffer_commands(ring_buffer_t *rb) {
             // Enciende el LED (simula abrir la puerta)
             HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET);
             // Envía un mensaje indicando que la puerta está abierta
-            uart_send_string("\r\nDoor OPEN (LD2 ON)\r\n");
+            uart_send_string("\r\nDoor OPEN\r\n");
             HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
             ssd1306_On_Led();
             // Elimina el comando del buffer circular
@@ -128,7 +160,7 @@ void process_buffer_commands(ring_buffer_t *rb) {
             // Apaga el LED (simula cerrar la puerta)
             HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
             // Envía un mensaje indicando que la puerta está cerrada
-            uart_send_string("\r\nDoor CLOSED (LD2 OFF)\r\n");
+            uart_send_string("\r\nClosed Door\r\n");
             HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET); 
             ssd1306_Off_Led();         
             // Elimina el comando del buffer circular
@@ -144,37 +176,17 @@ void process_buffer_commands(ring_buffer_t *rb) {
             GPIO_PinState estado_LED4 = HAL_GPIO_ReadPin(LED4_GPIO_Port, LED4_Pin);
 
             if (estado_LED1 == GPIO_PIN_SET){
-                HAL_UART_Transmit(&huart2,(uint8_t*)"Estado: Abierta\r\n",17,100);
-                HAL_UART_Transmit(&huart2,(uint8_t*)"Estado: Abierta\r\n",17,100);
+                uart_send_string("\r\nState: Open\r\n");
                 ssd1306_On_Led();
             }
             else if (estado_LED4 == GPIO_PIN_SET){
-                HAL_UART_Transmit(&huart2,(uint8_t*)"Estado: Abierta\r\n",17,100);
-                HAL_UART_Transmit(&huart2,(uint8_t*)"Estado: Abierta\r\n",17,100);
+                uart_send_string("\r\nState: Closed\r\n");
                 ssd1306_Off_Led();
             }
             else{
-                HAL_UART_Transmit(&huart2,(uint8_t*)"Estado: Reiniciando\r\n",21,100);
-                HAL_UART_Transmit(&huart3,(uint8_t*)"Estado: Reiniciando\r\n",21,100);
-                ssd1306_Fill(Black); // Limpiar pantalla
-                ssd1306_SetCursor(20,20);
-                ssd1306_WriteString("Buffer Cleared", Font_7x10, White); // Muestra "Buffer Cleared"
-                ssd1306_UpdateScreen();
-                HAL_Delay(1000); // Muestra el mensaje por 1 segundo
-
+                uart_send_string("\r\nState: Restarting\r\n");
+                ssd1306_Clean_Led();
             }
-            // uint8_t state = HAL_GPIO_ReadPin(LED1_GPIO_Port, LED1_Pin);
-            // uint8_t state2 = HAL_GPIO_ReadPin(LED4_GPIO_Port, LED4_Pin);
-            // // Envía un mensaje con el estado actual
-            // uart_send_string(state ? "\r\nStatus: OPEN (LD2 ON)\r\n" : "\r\nStatus: CLOSED (LD2 OFF)\r\n");
-            // // Envía un mensaje con el estado actual
-            // if (state) {
-            //     // Si la puerta está abierta, muestra el icono y texto de "abierto"
-            //     ssd1306_On_Led();
-            // } else {
-            //     // Si la puerta está cerrada, muestra el icono y texto de "cerrado"
-            //     ssd1306_Off_Led();
-            // }
             // Elimina el comando del buffer circular
             for (int i = 0; i < LENGTH; i++) {
                 uint8_t dummy;
@@ -191,11 +203,7 @@ void process_buffer_commands(ring_buffer_t *rb) {
             HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin,GPIO_PIN_RESET);
             HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin,GPIO_PIN_RESET);
             // Muestra un mensaje en la pantalla SSD1306 indicando que el buffer ha sido limpiado
-            ssd1306_Fill(Black); // Limpiar pantalla
-            ssd1306_SetCursor(20,20);
-            ssd1306_WriteString("Buffer Cleared", Font_7x10, White); // Muestra "Buffer Cleared"
-            ssd1306_UpdateScreen();
-            HAL_Delay(1000); // Muestra el mensaje por 1 segundo
+            ssd1306_Clean_Led();
             break; // Sale del bucle, ya que el buffer fue limpiado
         }
         // Si no se encuentra un comando válido
@@ -215,22 +223,54 @@ void process_button(void)
         if (button_press_count == 1)
         {
             // Acción para una sola presión: enciende el LED (abre la puerta)
-            HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-            uart_send_string("\r\nDoor OPEN (LD2 ON) via button\r\n");
+            HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+            uart_send_string("\r\nOpen door via button\r\n");
             ssd1306_On_Led();
-            button_press_count = 0;
         }
         else if (button_press_count == 2)
         {
             // Acción para dos presiones: apaga el LED (cierra la puerta)
-            HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-            uart_send_string("\r\nDoor CLOSED (LD2 OFF) via button\r\n");
+            HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+            uart_send_string("\r\nClosed door via button\r\n");
             ssd1306_Off_Led();
-            button_press_count = 0;
         }
         // Si se presionó más de dos veces, no se realiza acción
 
         // Reinicia el contador para la siguiente secuencia
         button_press_count = 0;
+    }
+}
+// Procesar el estado del sensor
+void process_sensor(void){
+    // Procesar el sensor detectado
+    if (sensor_detected_flag) {
+        uart_send_string("\r\nThere is someone at the door\r\n");
+        GPIO_PinState closed_door = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4);
+        GPIO_PinState open_door = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
+        if (closed_door == GPIO_PIN_SET){
+            ssd1306_Password();
+        }
+        else if (open_door == GPIO_PIN_SET){
+            ssd1306_On_Led();
+        }
+        else {
+            ssd1306_Password();
+        }
+        sensor_detected_flag = 0;  // Limpiar la bandera
+    }
+    
+}
+// Procesar el estado del timbre
+void process_timbre(void) {
+    // Verifica si el timbre ha sido presionado
+    if (doorbell_pressed) {
+        uart_send_string("\r\nHome doorbell activated\r\n");  // Enviar mensaje por UART
+        ssd1306_Fill(Black);  // Limpiar pantalla
+        ssd1306_SetCursor(10, 20);
+        ssd1306_WriteString("Doorbell On", Font_7x10, White);  // Mensaje en la pantalla
+        ssd1306_UpdateScreen();  // Actualizar la pantalla
+        HAL_Delay(4000);
     }
 }

@@ -38,5 +38,10 @@ void uart_send_string(const char *str);
 void process_buffer_commands(ring_buffer_t *rb);
 void ssd1306_On_Led(void);
 void ssd1306_Off_Led(void);
+void ssd1306_Welcome(void);
+void ssd1306_Password(void);
 void process_button(void);
+void process_sensor(void);
+void process_timbre(void);
+
 #endif /* CONTROL_SYSTEM_H */

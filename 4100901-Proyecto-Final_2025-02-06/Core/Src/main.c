@@ -68,9 +68,9 @@ static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN 0 */
 uint32_t key_pressed_tick = 0;  // Stores the timestamp when a key is pressed
 uint16_t column_pressed = 0;    // Stores the column of the keypad that was pressed
-
 uint32_t debounce_tick = 0;  // Stores the timestamp to prevent debounce
-
+uint8_t sensor_detected_flag = 0;  // Bandera para indicar que se ha detectado el sensor
+uint8_t doorbell_pressed = 0;
 // Callback to handle GPIO interrupts (matrix keypad)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
   // Checks if enough time has passed since the last interrupt (debounce)
@@ -80,6 +80,28 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
   debounce_tick = HAL_GetTick();  // Update the last interrupt timestamp
   key_pressed_tick = HAL_GetTick();  // Store the timestamp when the key was pressed
   column_pressed = GPIO_Pin;  // Store the column of the keypad that was pressed
+
+  // Verificar si la interrupción proviene de PA12 (EXTI12)
+  if (GPIO_Pin == GPIO_PIN_12) // PA12
+  {
+      // Leer el estado del sensor (PA12)
+      GPIO_PinState sensor_state = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12);  // PA12 es el pin configurado
+
+      if (sensor_state == GPIO_PIN_SET){
+        sensor_detected_flag = 1;  // Marca que el sensor fue activado
+      }
+  }
+  // Verificar si la interrupción proviene de PA11 (timbre)
+  if (GPIO_Pin == GPIO_PIN_11) {  // PA11
+    // Leer el estado del botón PA11 Si el botón ha sido presionado
+    if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11) == GPIO_PIN_SET) {
+        doorbell_pressed = 1;  // Marcar el estado como presionado
+    }
+    else {
+        // Si el botón ha sido soltado
+        doorbell_pressed = 0;  // Marcar el estado como no presionado
+    }
+  }
 }
 
 // Callback to handle USART interrupts (console)
@@ -138,14 +160,7 @@ int main(void)
   memset(current_cmd, 0, LENGTH); // Limpiar el buffer de comandos
   HAL_UART_Receive_IT(&huart2, &rx_byte, 1); // Start UART interrupt
   HAL_UART_Receive_IT(&huart3, &esp01_rx_byte,1);
-  ssd1306_SetCursor(20,10);
-  ssd1306_Fill(Black);
-  ssd1306_WriteString((char *)FW_VERSION, Font_7x10, White);
-  ssd1306_SetCursor(10, 30);          // Establecer la posición del cursor para el segundo mensaje
-  ssd1306_WriteString("Access Control", Font_7x10, White); // Mostrar el mensaje
-  ssd1306_SetCursor(10, 40); 
-  ssd1306_WriteString("System", Font_7x10, White); // Mostrar
-  ssd1306_UpdateScreen();
+  ssd1306_Welcome();
   while (1) {
     hearbeat();
 
@@ -158,6 +173,11 @@ int main(void)
         }
         column_pressed = 0;
     }
+    if (doorbell_pressed == 1){
+      process_timbre();
+    }
+    // process_timbre();
+    process_sensor();
     process_commands();
     process_button();
     /* USER CODE END WHILE */
@@ -357,11 +377,11 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, ROW_2_Pin|ROW_4_Pin|ROW_3_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : B1_Pin Timbre_Pin */
-  GPIO_InitStruct.Pin = B1_Pin|Timbre_Pin;
+  /*Configure GPIO pin : B1_Pin */
+  GPIO_InitStruct.Pin = B1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED1_Pin LED4_Pin LD2_Pin */
   GPIO_InitStruct.Pin = LED1_Pin|LED4_Pin|LD2_Pin;
@@ -394,6 +414,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(ROW_1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Doorbell_Pin Infrade_Pin */
+  GPIO_InitStruct.Pin = Doorbell_Pin|Infrade_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : ROW_2_Pin ROW_4_Pin ROW_3_Pin */
   GPIO_InitStruct.Pin = ROW_2_Pin|ROW_4_Pin|ROW_3_Pin;
