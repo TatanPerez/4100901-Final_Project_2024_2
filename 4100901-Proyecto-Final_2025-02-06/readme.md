@@ -71,14 +71,15 @@ El firmware se organiza en módulos para mantener una arquitectura modular y esc
 
 El siguiente diagrama ilustra las conexiones físicas entre la placa, los periféricos y los módulos de comunicación:
 
-![Diagrama de conexiones](C:\Users\Tatan Perez\Documents\Unal\Tuition 6\Estructuras Computacionales\GithubDesktop\4100901-Final_Project_2024_2\4100901-Proyecto-Final_2025-02-06\Assests\Diagrama_Conexiones.jpg)
+![Diagrama de conexiones](Assests\Diagrama_Conexiones.jpg)
+
 ---
 
 ## 5. Máquina de Estados del Sistema
 
 El sistema gestiona el estado de la cerradura mediante comandos y pulsaciones del botón. Además, el sensor infrarrojo de proximidad notifica la presencia de una persona frente a la puerta sin alterar el estado de la cerradura. El diagrama a continuación resume las transiciones principales:
 
-![Maquina de Estados del Sistema](C:\Users\Tatan Perez\Documents\Unal\Tuition 6\Estructuras Computacionales\GithubDesktop\4100901-Final_Project_2024_2\4100901-Proyecto-Final_2025-02-06\Assests\Diagrama de estados.png)
+![Maquina de Estados del Sistema](Assests\Diagrama_de_estados.png)
 
 **Notas adicionales:**
 
