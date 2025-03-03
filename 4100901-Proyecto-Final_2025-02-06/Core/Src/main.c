@@ -105,7 +105,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 }
 
 // Callback to handle USART interrupts (console)
-void hearbeat(void)
+void heartbeat(void)
 {
 	static uint32_t tick = 0;
 	if (tick < HAL_GetTick()) {
