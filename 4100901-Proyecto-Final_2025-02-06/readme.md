@@ -89,8 +89,8 @@ El sistema gestiona el estado de la cerradura mediante comandos y pulsaciones de
 - **De ABIERTO a CERRADO:**  
   Se produce al recibir el comando `#*C*#`, mediante una doble pulsación del botón o a través de un timeout/consulta (comando `#*1*#`), lo que cierra la puerta (se reactivan los indicadores de cerrado).
 
-- **CLEAR (#*0*#):**  
-  Este comando reinicia el buffer y fuerza la transición al estado CERRADO, independientemente del estado actual.
+- **CLEAR:**  
+  Este comando `#*0*#` reinicia el buffer y fuerza la transición al estado CERRADO, independientemente del estado actual.
 
 - **Sensor Infrarrojo de Proximidad:**  
   El sensor detecta la presencia de una persona frente a la puerta y notifica:
@@ -105,8 +105,11 @@ El sistema gestiona el estado de la cerradura mediante comandos y pulsaciones de
 
 ![Diagrama de Flujo del Sistema](Assests/Diagrama_de_Flujo.png)
 
-**Notas**
-Este diagrama de flujo ilustra de forma secuencial la recepción de datos, su procesamiento (comandos y validaciones) y la ejecución de acciones (activación de LEDs o notificaciones). Resume la lógica principal para abrir, cerrar o consultar el estado de la puerta, integrando eventos de sensores y pulsaciones de botones.
+**Notas:**
+
+- En el diagrama se observa que los comandos estan escritos de otra manera, esto se debe a que en el programa donde se realizaron los diagramas no permitia escribirlos correctamente. pero en las notas adicionales del diagrama de estados del sistema estan especificados los comandos correctamente.
+
+- Este diagrama de flujo ilustra de forma secuencial la recepción de datos, su procesamiento (comandos y validaciones) y la ejecución de acciones (activación de LEDs o notificaciones). Resume la lógica principal para abrir, cerrar o consultar el estado de la puerta, integrando eventos de sensores y pulsaciones de botones.
 
 ---
 
