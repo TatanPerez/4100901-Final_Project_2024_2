@@ -71,7 +71,7 @@ El firmware se organiza en módulos para mantener una arquitectura modular y esc
 
 El siguiente diagrama ilustra las conexiones físicas entre la placa, los periféricos y los módulos de comunicación:
 
-![Diagrama de conexiones](Assests\Diagrama_Conexiones.jpg)
+![Diagrama de conexiones](Assests/Diagrama_Conexiones.jpg)
 
 ---
 
@@ -79,7 +79,7 @@ El siguiente diagrama ilustra las conexiones físicas entre la placa, los perif�
 
 El sistema gestiona el estado de la cerradura mediante comandos y pulsaciones del botón. Además, el sensor infrarrojo de proximidad notifica la presencia de una persona frente a la puerta sin alterar el estado de la cerradura. El diagrama a continuación resume las transiciones principales:
 
-![Maquina de Estados del Sistema](Assests\Diagrama_de_estados.png)
+![Maquina de Estados del Sistema](Assests/Diagrama_de_estados.png)
 
 **Notas adicionales:**
 
@@ -98,6 +98,15 @@ El sistema gestiona el estado de la cerradura mediante comandos y pulsaciones de
   - Si la puerta está abierta, se refuerza la visualización del candado abierto.
   
   Esta notificación se realiza en paralelo al manejo de estados sin modificar la lógica de transición.
+
+---
+
+## 5.1 Diagrama de Flujo del Sistema
+
+![Diagrama de Flujo del Sistema](Assests/Diagrama_de_Flujo.png)
+
+**Notas**
+Este diagrama de flujo ilustra de forma secuencial la recepción de datos, su procesamiento (comandos y validaciones) y la ejecución de acciones (activación de LEDs o notificaciones). Resume la lógica principal para abrir, cerrar o consultar el estado de la puerta, integrando eventos de sensores y pulsaciones de botones.
 
 ---
 
